@@ -1,0 +1,1854 @@
+openapi: 3.0.3
+info:
+  title: Product Feedback App API
+  description: Documentation for the Product Feedback API.
+  version: 1.0.0
+externalDocs:
+  description: Project's GitHub Repository
+  url: 
+servers:
+  - url: https://server.com
+tags:
+  - name: Authentication
+  - name: Users
+  - name: Feedbacks
+  - name: Comments
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      description: Create a user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                  minLength: 6
+
+      responses:
+        '201':
+          description: User has been created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    message: 'Successful registration.'
+        '400':
+          description: Missing input field or already registered user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Missing-input:
+                  value:
+                    status: 'fail'
+                    message: 'All fields is required.'
+                Already-registered:
+                  value:
+                    status: 'fail'
+                    message: 'The email address are already registered.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      description: Send JWT acccess token to the user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User logged in successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+        '400':
+          description: Missing input field.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Missing-input:
+                  value:
+                    status: 'fail'
+                    message: 'All fields are required.'
+        '404':
+          description: Incorrect email or password.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Incorrect-input:
+                  value:
+                    status: 'fail'
+                    message: 'Incorrect email or password.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User logged out successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    message: 'User has logged out.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      description: Sending a link in email to the User, where the User can change its password.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Password reset link in email has been sent to user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    message: 'Email sent to the user.'
+        '400':
+          description: Missing email input field.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Incorrect-email:
+                  value:
+                    status: 'fail'
+                    message: 'Email is required.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Incorrect-email:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /auth/reset-password/{resetToken}:
+    patch:
+      tags:
+        - Authentication
+      description: Reset the user's password.
+      parameters:
+        - name: resetToken
+          in: path
+          required: true
+          description: For the password reset token, send a POST request to /auth/forgot-password path.
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Password changed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    message: 'Password has changed. You can login with your new password.'
+        '400':
+          description: Missing password or invalid password reset token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Missing-password:
+                  value:
+                    status: 'fail'
+                    message: 'Password is required.'
+                Invalid-token:
+                  value:
+                    status: 'fail'
+                    message: 'Reset password token is invalid.'
+        '404':
+          description: Invalid or expired password reset token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-token:
+                  value:
+                    status: 'fail'
+                    message: 'Reset token is invalid or has expired.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /auth/refresh-token:
+    post:
+      tags:
+        - Authentication
+      description: Send new access token to the User.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: New access token has been sent to User.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+        '400':
+          description: Missing refresh token field.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Missing-token:
+                  value:
+                    status: 'fail'
+                    message: 'Refresh token is required.'
+        '404':
+          description: Invalid refresh token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-token:
+                  value:
+                    status: 'fail'
+                    message: 'Refresh token is invalid.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /users/authed:
+    get:
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      description: Returns the logged in user's data.
+      responses:
+        '200':
+          description: Returns the logged in user's data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+    put:
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      description: Update logged in user's fullname and username. Both data are required.
+      responses:
+        '200':
+          description: Logged in user's data has successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    message: 'User updated.'
+        '400':
+          description: Missing input fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Missing-input:
+                  value:
+                    status: 'fail'
+                    message: 'Fullname and username are required.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /users/authed/image:
+    post:
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      description: Update logged in user's profile image.
+      responses:
+        '200':
+          description: Logged in user's image has successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      profileImageUrl:
+                        type: string
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /feedbacks/:
+    get:
+      tags:
+        - Feedbacks
+      security:
+        - BearerAuth: []
+      description: List all feedback.
+      responses:
+        '200':
+          description: Returns all feedbacks, and the counts of feedbacks by status in the headers.
+          headers:
+            Suggestion-Count:
+              schema:
+                type: integer
+            Planned-Cout:
+              schema:
+                type: integer
+            In-Progress-Count:
+              schema:
+                type: integer
+            Live-Count:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      feedbacks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Feedback'
+                      totalItems:
+                        type: integer
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+    post:
+      tags:
+        - Feedbacks
+      security:
+        - BearerAuth: []
+      description: Create a feedback.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                detail:
+                  type: string
+                category:
+                  type: string
+                  enum:
+                    - feature
+                    - ui
+                    - ux
+                    - enhancement
+                    - bug
+      responses:
+        '201':
+          description: Return the successfully created feedback.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Feedback'
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    data:
+                      _id: '1'
+                      title: 'Allow image/video upload'
+                      detail: 'Images and screencasts can enhance comments on solutions.'
+                      category: 'feature'
+                      status: 'suggestion'
+                      upvotes: []
+                      comments:  []
+        '400':
+          description: Missing input fields or invalid category value.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Missing-input:
+                  value:
+                    status: 'fail'
+                    message: 'All fields are required.'
+                Invalid-category:
+                  value:
+                    status: 'fail'
+                    message: 'Invalid category. The category can only be: Feature, UI, UX, Enhancement or Bug.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /feedbacks/{feedbackId}:
+    get:
+      tags:
+        - Feedbacks
+      security:
+        - BearerAuth: []
+      description: Return one feedback by id.
+      parameters:
+        - name: feedbackId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return one feedback.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Feedback'
+        '400':
+          description: Invalid feedback id.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-ID:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback ID is invalid.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+    put:
+      tags:
+        - Feedbacks
+      security:
+        - BearerAuth: []
+      description: Update a feedback.
+      parameters:
+        - name: feedbackId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                category:
+                  type: string
+                  enum:
+                    - feature
+                    - ui
+                    - ux
+                    - enhancement
+                    - bug
+                status:
+                  type: string
+                  enum:
+                    - suggestion
+                    - planned
+                    - in-progress
+                    - live
+                detail:
+                  type: string
+      responses:
+        '200':
+          description: Return the successfully updated feedback.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Feedback'
+        '400':
+          description: Invalid feedback id, or missing input fields, or invalid category value, or invalid status value.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-ID:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback ID is invalid.'
+                Missing-input:
+                  value:
+                    status: 'fail'
+                    message: 'All fields are required.'
+                Invalid-category:
+                  value:
+                    status: 'fail'
+                    message: 'Invalid category. The category can only be: Feature, UI, UX, Enhancement or Bug.'
+                Invalid-status:
+                  value:
+                    status: 'fail'
+                    message: 'Invalid status. The status can only be: Suggestion, Planned, In-Progress or Live'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User or feedback not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+                Feedback-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+    delete:
+      tags:
+        - Feedbacks
+      security:
+        - BearerAuth: []
+      description: Delete a feedback.
+      parameters:
+        - name: feedbackId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback has successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    message: 'Feedback has deleted.'
+        '400':
+          description: Invalid feedback id.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-ID:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback ID is invalid.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User or feedback not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+                Feedback-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /feedbacks/{feedbackId}/upvote:
+    patch:
+      tags:
+        - Feedbacks
+      security:
+        - BearerAuth: []
+      description: Upvote/downvote a feedback. If the user has not upvoted the feedback yet, the feedback will be upvoted by the logged in user. If the feedback has already been upvoted, it will be downvoted.
+      parameters:
+        - name: feedbackId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback has been upvoted/downvoted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    message: 'Feedback upvoted / downvoted.'
+        '400':
+          description: Invalid feedback id.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-ID:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback ID is invalid.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User or feedback not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+                Feedback-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /feedbacks/{feedbackId}/comments:
+    post:
+      tags:
+        - Feedbacks
+      security:
+        - BearerAuth: []
+      description: Create a comment on the given feedback.
+      parameters:
+        - name: feedbackId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  maxLength: 250
+      responses:
+        '201':
+          description: Return the newly created comment.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Comment'
+              examples:
+                Success-response:
+                  value:
+                    status: 'success'
+                    data:
+                      _id: '1'
+                      author: 'author_id'
+                      content: 'Comment content...'
+                      replies: []
+        '400':
+          description: Invalid feedback id or missing input field.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-ID:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback ID is invalid.'
+                Missing-input:
+                  value:
+                    status: 'fail'
+                    message: 'Content is required.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User or feedback not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+                Feedback-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+  /comments/{commentId}/replies:
+    post:
+      tags:
+        - Comments
+      security:
+        - BearerAuth: []
+      description: Create a reply on the given comment.
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  maxLength: 250
+                replyToId:
+                  type: string
+      responses:
+        '201':
+          description: Return all the replies on the comment.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reply'
+
+        '400':
+          description: Invalid comment id, or missing input fields, or invalid reply to user id.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-ID:
+                  value:
+                    status: 'fail'
+                    message: 'Feedback ID is invalid.'
+                Missing-input:
+                  value:
+                    status: 'fail'
+                    message: 'All field is required.'
+                Invalid-replyTo-ID:
+                  value:
+                    status: 'fail'
+                    message: 'ReplyTo User ID is invalid.'
+        '401':
+          description: Invalid access token or not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Invalid-JWT:
+                  value:
+                    status: 'fail'
+                    message: 'Access token is invalid.'
+                Not-authenticated:
+                  value:
+                    status: 'fail'
+                    message: 'Not authenticated.'
+        '403':
+          description: JWT token has expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                JWT-expired:
+                  value:
+                    status: 'fail'
+                    message: 'JWT expired.'
+        '404':
+          description: User or comment not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                User-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'User not found.'
+                Comment-not-found:
+                  value:
+                    status: 'fail'
+                    message: 'Comment not found.'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                Server-error:
+                  value:
+                    status: 'error'
+                    message: 'Server error.'
+components:
+  schemas:
+    Feedback:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        category:
+          type: string
+          enum:
+            - feature
+            - ui
+            - ux
+            - enhancement
+            - bug
+        status:
+          type: string
+          enum:
+            - suggestion
+            - planned
+            - in-progress
+            - live
+        upvotes:
+          type: array
+          items:
+           type: string
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+    Comment:
+      type: object
+      properties:
+        _id:
+          type: string
+        author:
+          type: string
+        content:
+          type: string
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reply'
+    Reply:
+      type: object
+      properties:
+        _id:
+          type: string
+        author:
+          $ref: '#/components/schemas/User'
+        content:
+          type: string
+        replyTo:
+          $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        fullname:
+          type: string
+        username:
+          type: string
+        profileImageUrl:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
