@@ -6,8 +6,6 @@ info:
 externalDocs:
   description: Project's GitHub Repository
   url: https://github.com/akosklema/product-feedback-app
-servers:
-  - url: https://server.com
 tags:
   - name: Authentication
   - name: Users
